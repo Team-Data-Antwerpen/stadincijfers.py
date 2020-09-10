@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="stadincijfers", 
-    version="0.1.0",
+    version="0.1.1",
     author="Kay Warrie",
     author_email="kaywarrie@gmail.com",
     description="A python package to make data from stadincijfers easely available for data scientists. ",
