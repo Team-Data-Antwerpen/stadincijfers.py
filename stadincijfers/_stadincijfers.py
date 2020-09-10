@@ -43,7 +43,7 @@ class stadincijfers:
         resp = urlopen(req, context=self.CONTEXT)
         return json.load(resp) 
         
-    def odataVariables(self, skip_rows= 0 , to_rows=100):   
+    def odataVariables(self, skip_rows= 0 , to_rows=1000):   
         if skip_rows >= to_rows:
             raise Exception("skip_rows must be smaller then to_rows")
         

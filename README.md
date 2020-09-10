@@ -20,10 +20,24 @@ Many local goverments in Flanders have a website like this:
 Installation:
 --------------
 
+from [pypi](https://pypi.org/project/stadincijfers/): 
+
     pip install stadincijfers
 
+or from sources: 
+    
+    git clone https://github.com/warrieka/stadincijfers.py
+    cd stadincijfers.py
+    pip install -r requirements.txt
+    pip install .
 
 Usage:
 -----
 
-See example jupyter notebook: [example_usage.ipynb](example_usage.ipynb)
+```python
+    from stadincijfers import stadincijfers
+    sic = stadincijfers("antwerpen") #or gent or provincies or url
+    sic.periodlevels() #=> get all periodslevels
+```
+
+For more see example jupyter notebook: [example_usage.ipynb](example_usage.ipynb)
