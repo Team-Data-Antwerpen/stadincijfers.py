@@ -85,6 +85,6 @@ class stadincijfers:
         
         df = pd.DataFrame(data, columns=header)
         if dtype == 'Numeric':
-            df[ header[2] ] = df[header[2]].apply(lambda x: None if not x else float(x) )
+            df[ header[2] ] = df[header[2]].apply(lambda x: None if ((not x) or (x=='-') or (x=='x') or (x=='?')) else float(x) )
     
         return df
