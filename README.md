@@ -34,10 +34,20 @@ or from sources:
 Usage:
 -----
 
+1) List periodlevels in the SIC site of Antwerp. 
 ```python
     from stadincijfers import stadincijfers
     sic = stadincijfers("antwerpen") #or gent or provincies or url
     sic.periodlevels() #=> get all periodslevels
 ```
+
+2) Export excel: 
+```python
+    from stadincijfers import stadincijfers
+    sic = stadincijfers("antwerpen") #or gent or provincies or url
+    bevdicht = sic.selectiontableasDataframe('bevdicht', geolevel='sector', periodlevel='year', period=2022)
+    bevdicht.to_excel('data\\bevdicht2022.xlsx') # save to excel
+```
+
 
 For more see example jupyter notebook: [example_usage.ipynb](example_usage.ipynb)

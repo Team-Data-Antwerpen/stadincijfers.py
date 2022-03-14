@@ -8,7 +8,6 @@ if sys.version_info.major >= 3:
     from urllib.parse import urlencode
     from urllib.request import Request, urlopen
 
-
 class stadincijfers:
     BASE_URLS ={"antwerpen": 'https://stadincijfers.antwerpen.be/databank/',
                 "gent": 'https://gent.buurtmonitor.be/',
@@ -18,8 +17,8 @@ class stadincijfers:
     def __init__(self, name_or_url):
         if name_or_url in self.BASE_URLS.keys():
             self.url = self.BASE_URLS[name_or_url]
-        elif name.startswith("http://") or name.startswith("https://"):
-            self.url = name
+        elif name_or_url.startswith("http://") or name_or_url.startswith("https://"):
+            self.url = name_or_url
         else: 
             raise Exception("name_or_url is not a valid name or url")
          
@@ -76,7 +75,7 @@ class stadincijfers:
         return json.load(resp)
 
     
-    def selectiontableasDataframe(self, var, geolevel="sector", periodlevel="year",  period='2020', validate=True ):
+    def selectiontableasDataframe(self, var, geolevel="sector", periodlevel="year", period='2020', validate=True ):
         import pandas as pd
         st_js = self.selectiontableasjson(var, geolevel, periodlevel, period, validate)
         header = [ n['name'] for n in st_js['headers'] ]
@@ -85,6 +84,12 @@ class stadincijfers:
         
         df = pd.DataFrame(data, columns=header)
         if dtype == 'Numeric':
-            df[ header[2] ] = df[header[2]].apply(lambda x: None if ((not x) or (x=='-') or (x=='x') or (x=='?')) else float(x) )
+            df[ header[2] ] = df[header[2]].apply( self._str2flt )
     
         return df
+
+    def _str2flt(self, element):
+        try:
+            return float(element)
+        except ValueError:
+            return None
