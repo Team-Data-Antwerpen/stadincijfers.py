@@ -1,5 +1,6 @@
 from __future__ import print_function
 import sys, json, ssl
+import pandas as pd
 
 if sys.version_info.major == 2:
     from urllib2 import Request, urlopen
@@ -25,22 +26,39 @@ class stadincijfers:
         if not self.url.endswith("/"): 
             self.url = self.url + '/'
     
-    def geolevels(self):
-        req = Request( self.url + "jiveservices/odata/GeoLevels")
+    def _req_to_json(self, req):
         resp = urlopen(req, context=self.CONTEXT)
-        respjs =  json.load(resp) 
-        return {n["ExternalCode"] : n["Name"] for n in respjs["value"]}
-        
-    def periodlevels(self):
-        req = Request( self.url + "jiveservices/odata/PeriodLevels")
-        resp = urlopen(req, context=self.CONTEXT)
-        respjs =  json.load(resp) 
+        return json.load(resp)
+
+    def _req_to_dict(self, req):
+        respjs = self._req_to_json(req)
         return {n["ExternalCode"] : n["Name"] for n in respjs["value"]} 
+    
+    def geolevels(self, var):
+        req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels")
+        return self._req_to_dict(req)
         
+    def periodlevels(self, var, geolevel):
+        req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels('{geolevel}')/PeriodLevels")
+        return self._req_to_dict(req) 
+        
+    def dim_dict(self, var):
+        dim_dict = {}
+        req = Request( self.url + f"jiveservices/odata/CubeVariables('{var}')/Dimensions")
+        dimensions = self._req_to_dict(req).keys()
+        for dim in dimensions:
+          req = Request( self.url + f"jiveservices/odata/CubeVariables('{var}')/Dimensions('{dim}')/DimLevels")
+          dimlevels = list(self._req_to_dict(req).keys())
+          dim_dict[dim] = dimlevels
+        return dim_dict
+
+    def dimlevels(self, var):
+        dim_dict = self.dim_dict(var)
+        return [item for sublist in dim_dict.values() for item in sublist]
+    
     def _odataVariables(self, skip= 0):
         req =  Request( self.url + "jiveservices/odata/Variables?$skip={}".format(skip) )
-        resp = urlopen(req, context=self.CONTEXT)
-        return json.load(resp) 
+        return self._req_to_json(req)
         
     def odataVariables(self, skip_rows= 0 , to_rows=1000):   
         if skip_rows >= to_rows:
@@ -60,24 +78,30 @@ class stadincijfers:
             count += step
         return {n["ExternalCode"] : n["Name"] for n in data} 
         
-    def selectiontableasjson(self, var, geolevel="sector", periodlevel="year", period='2020', validate=True ):
+    def selectiontableasjson(self, var, geolevel="sector", periodlevel="year", period="mrp", validate=True, dimlevel=None ):
         if validate:
-            geolevels = self.geolevels().keys()
-            periodlevels = self.periodlevels().keys()
+            geolevels = self.geolevels(var).keys()
+            periodlevels = self.periodlevels(var, geolevel).keys()
             if not geolevel in geolevels:
                 raise Exception( 'geolevel most be in ' + ", ".join( geolevels )  )       
             if not periodlevel in periodlevels:
                 raise Exception( 'periodlevel most be in ' + ", ".join( periodlevels )  )
-            
-        params = {"var": var, "geolevel": geolevel, "Periodlevel": periodlevel, 'period': period }
+            if dimlevel:
+              dimlevels = self.dimlevels(var)
+              for dimitem in dimlevel.split(','):
+                if not dimitem in dimlevels:
+                  raise Exception(f"dimlevel must be in {', '.join(dimlevels)}")
+              
+        if dimlevel:
+          params = {"var": var, "geolevel": geolevel, "Periodlevel": periodlevel, "period": period, "dimlevel": dimlevel }
+        else:
+          params = {"var": var, "geolevel": geolevel, "Periodlevel": periodlevel, "period": period}
         req =  Request( self.url + "jive/selectiontableasjson.ashx?" + urlencode(params))
-        resp = urlopen(req, context=self.CONTEXT)
-        return json.load(resp)
+        return self._req_to_json(req)
 
     
-    def selectiontableasDataframe(self, var, geolevel="sector", periodlevel="year", period='2020', validate=True ):
-        import pandas as pd
-        st_js = self.selectiontableasjson(var, geolevel, periodlevel, period, validate)
+    def selectiontableasDataframe(self, var, geolevel="sector", periodlevel="year", period="mrp", validate=True, dimlevel=None ):
+        st_js = self.selectiontableasjson(var, geolevel, periodlevel, period, validate, dimlevel)
         header = [ n['name'] for n in st_js['headers'] ]
         dtype = st_js['headers'][2]['type']
         data = st_js['rows']
