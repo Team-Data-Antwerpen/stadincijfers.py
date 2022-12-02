@@ -26,22 +26,25 @@ class stadincijfers:
         if not self.url.endswith("/"): 
             self.url = self.url + '/'
     
-    def geolevels(self):
-        req = Request( self.url + "jiveservices/odata/GeoLevels")
+    def _req_to_json(self, req):
         resp = urlopen(req, context=self.CONTEXT)
-        respjs =  json.load(resp) 
-        return {n["ExternalCode"] : n["Name"] for n in respjs["value"]}
-        
-    def periodlevels(self):
-        req = Request( self.url + "jiveservices/odata/PeriodLevels")
-        resp = urlopen(req, context=self.CONTEXT)
-        respjs =  json.load(resp) 
+        return json.load(resp)
+
+    def _req_to_dict(self, req):
+        respjs = self._req_to_json(req)
         return {n["ExternalCode"] : n["Name"] for n in respjs["value"]} 
+    
+    def geolevels(self, var):
+        req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels")
+        return self._req_to_dict(req)
+        
+    def periodlevels(self, var, geolevel):
+        req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels('{geolevel}')/PeriodLevels")
+        return self._req_to_dict(req) 
         
     def _odataVariables(self, skip= 0):
         req =  Request( self.url + "jiveservices/odata/Variables?$skip={}".format(skip) )
-        resp = urlopen(req, context=self.CONTEXT)
-        return json.load(resp) 
+        return self._req_to_json(req)
         
     def odataVariables(self, skip_rows= 0 , to_rows=1000):   
         if skip_rows >= to_rows:
@@ -63,8 +66,8 @@ class stadincijfers:
         
     def selectiontableasjson(self, var, geolevel="sector", periodlevel="year", period='2020', validate=True ):
         if validate:
-            geolevels = self.geolevels().keys()
-            periodlevels = self.periodlevels().keys()
+            geolevels = self.geolevels(var).keys()
+            periodlevels = self.periodlevels(var, geolevel).keys()
             if not geolevel in geolevels:
                 raise Exception( 'geolevel most be in ' + ", ".join( geolevels )  )       
             if not periodlevel in periodlevels:
