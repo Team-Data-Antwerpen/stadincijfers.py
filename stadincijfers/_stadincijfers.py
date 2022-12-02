@@ -42,6 +42,20 @@ class stadincijfers:
         req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels('{geolevel}')/PeriodLevels")
         return self._req_to_dict(req) 
         
+    def dim_dict(self, var):
+        dim_dict = {}
+        req = Request( self.url + f"jiveservices/odata/CubeVariables('{var}')/Dimensions")
+        dimensions = self._req_to_dict(req).keys()
+        for dim in dimensions:
+          req = Request( self.url + f"jiveservices/odata/CubeVariables('{var}')/Dimensions('{dim}')/DimLevels")
+          dimlevels = list(self._req_to_dict(req).keys())
+          dim_dict[dim] = dimlevels
+        return dim_dict
+
+    def dimlevels(self, var):
+        dim_dict = self.dim_dict(var)
+        return [item for sublist in dim_dict.values() for item in sublist]
+    
     def _odataVariables(self, skip= 0):
         req =  Request( self.url + "jiveservices/odata/Variables?$skip={}".format(skip) )
         return self._req_to_json(req)
@@ -64,7 +78,7 @@ class stadincijfers:
             count += step
         return {n["ExternalCode"] : n["Name"] for n in data} 
         
-    def selectiontableasjson(self, var, geolevel="sector", periodlevel="year", period='2020', validate=True ):
+    def selectiontableasjson(self, var, geolevel="sector", periodlevel="year", period="mrp", validate=True, dimlevel=None ):
         if validate:
             geolevels = self.geolevels(var).keys()
             periodlevels = self.periodlevels(var, geolevel).keys()
@@ -72,15 +86,22 @@ class stadincijfers:
                 raise Exception( 'geolevel most be in ' + ", ".join( geolevels )  )       
             if not periodlevel in periodlevels:
                 raise Exception( 'periodlevel most be in ' + ", ".join( periodlevels )  )
-            
-        params = {"var": var, "geolevel": geolevel, "Periodlevel": periodlevel, 'period': period }
+            if dimlevel:
+              dimlevels = self.dimlevels(var)
+              for dimitem in dimlevel.split(','):
+                if not dimitem in dimlevels:
+                  raise Exception(f"dimlevel must be in {', '.join(dimlevels)}")
+              
+        if dimlevel:
+          params = {"var": var, "geolevel": geolevel, "Periodlevel": periodlevel, "period": period, "dimlevel": dimlevel }
+        else:
+          params = {"var": var, "geolevel": geolevel, "Periodlevel": periodlevel, "period": period}
         req =  Request( self.url + "jive/selectiontableasjson.ashx?" + urlencode(params))
-        resp = urlopen(req, context=self.CONTEXT)
-        return json.load(resp)
+        return self._req_to_json(req)
 
     
-    def selectiontableasDataframe(self, var, geolevel="sector", periodlevel="year", period='2020', validate=True ):
-        st_js = self.selectiontableasjson(var, geolevel, periodlevel, period, validate)
+    def selectiontableasDataframe(self, var, geolevel="sector", periodlevel="year", period="mrp", validate=True, dimlevel=None ):
+        st_js = self.selectiontableasjson(var, geolevel, periodlevel, period, validate, dimlevel)
         header = [ n['name'] for n in st_js['headers'] ]
         dtype = st_js['headers'][2]['type']
         data = st_js['rows']
