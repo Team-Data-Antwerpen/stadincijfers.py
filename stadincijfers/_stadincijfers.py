@@ -34,12 +34,18 @@ class stadincijfers:
         respjs = self._req_to_json(req)
         return {n["ExternalCode"] : n["Name"] for n in respjs["value"]} 
     
-    def geolevels(self, var):
-        req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels")
+    def geolevels(self, var=None):
+        if var:
+            req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels")
+        else:
+            req = Request( self.url + f"jiveservices/odata/GeoLevels")
         return self._req_to_dict(req)
         
-    def periodlevels(self, var, geolevel):
-        req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels('{geolevel}')/PeriodLevels")
+    def periodlevels(self, var=None, geolevel=None):
+        if var and geolevel:
+            req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels('{geolevel}')/PeriodLevels")
+        else:
+            req = Request( self.url + f"jiveservices/odata/PeriodLevels")
         return self._req_to_dict(req) 
         
     def dim_dict(self, var):
