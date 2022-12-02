@@ -1,5 +1,6 @@
 from __future__ import print_function
 import sys, json, ssl
+import pandas as pd
 
 if sys.version_info.major == 2:
     from urllib2 import Request, urlopen
@@ -76,7 +77,6 @@ class stadincijfers:
 
     
     def selectiontableasDataframe(self, var, geolevel="sector", periodlevel="year", period='2020', validate=True ):
-        import pandas as pd
         st_js = self.selectiontableasjson(var, geolevel, periodlevel, period, validate)
         header = [ n['name'] for n in st_js['headers'] ]
         dtype = st_js['headers'][2]['type']
