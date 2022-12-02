@@ -40,14 +40,24 @@ class stadincijfers:
         else:
             req = Request( self.url + f"jiveservices/odata/GeoLevels")
         return self._req_to_dict(req)
-        
+    
+    def geoitemlevels(self, geolevel=None, var=None):
+        if var and geolevel:
+            req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels('{geolevel}')/GeoItems")
+        elif geolevel:
+            req = Request( self.url + f"jiveservices/odata/GeoLevels('{geolevel}')/GeoItems")
+        else:
+            geolevels = self.geolevels(var).keys()
+            raise Exception( 'geolevel must be in ' + ", ".join( geolevels )  )               
+        return self._req_to_dict(req) 
+    
     def periodlevels(self, var=None, geolevel=None):
         if var and geolevel:
             req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels('{geolevel}')/PeriodLevels")
         else:
             req = Request( self.url + f"jiveservices/odata/PeriodLevels")
         return self._req_to_dict(req) 
-        
+    
     def dim_dict(self, var):
         dim_dict = {}
         req = Request( self.url + f"jiveservices/odata/CubeVariables('{var}')/Dimensions")
@@ -89,9 +99,9 @@ class stadincijfers:
             geolevels = self.geolevels(var).keys()
             periodlevels = self.periodlevels(var, geolevel).keys()
             if not geolevel in geolevels:
-                raise Exception( 'geolevel most be in ' + ", ".join( geolevels )  )       
+                raise Exception( 'geolevel must be in ' + ", ".join( geolevels )  )       
             if not periodlevel in periodlevels:
-                raise Exception( 'periodlevel most be in ' + ", ".join( periodlevels )  )
+                raise Exception( 'periodlevel must be in ' + ", ".join( periodlevels )  )
             if dimlevel:
               dimlevels = self.dimlevels(var)
               for dimitem in dimlevel.split(','):
