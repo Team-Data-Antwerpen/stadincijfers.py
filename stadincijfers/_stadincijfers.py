@@ -58,15 +58,24 @@ class stadincijfers:
             req = Request( self.url + f"jiveservices/odata/PeriodLevels")
         return self._req_to_dict(req) 
     
-    def dim_dict(self, var):
+    def dim_dict(var):
         dim_dict = {}
-        req = Request( self.url + f"jiveservices/odata/CubeVariables('{var}')/Dimensions")
-        dimensions = self._req_to_dict(req).keys()
+        req = Request( sic.url + f"jiveservices/odata/CubeVariables('{var}')/Dimensions")
+        dimensions = sic._req_to_dict(req).keys()
         for dim in dimensions:
-          req = Request( self.url + f"jiveservices/odata/CubeVariables('{var}')/Dimensions('{dim}')/DimLevels")
-          dimlevels = list(self._req_to_dict(req).keys())
-          dim_dict[dim] = dimlevels
+            try:
+                req = Request( sic.url + f"jiveservices/odata/CubeVariables('{var}')/DimLevels('{dim}')/DimMembers")
+                dimlevels = list(sic._req_to_dict(req).keys())
+                dim_dict[dim] = dimlevels
+            except:
+                try:
+                    req = Request( sic.url + f"jiveservices/odata/Dimensions('{dim}')/DimLevels")
+                    dimlevels = list(sic._req_to_dict(req).keys())
+                    dim_dict[dim] = dimlevels
+                except: 
+                    raise Exception('incorrect url(s)')
         return dim_dict
+
 
     def dimlevels(self, var):
         dim_dict = self.dim_dict(var)
