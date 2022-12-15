@@ -114,7 +114,7 @@ class stadincijfers:
             if dimlevel:
               dimlevels = self.dimlevels(var)
               for dimitem in dimlevel.split(','):
-                if not dimitem in dimlevels:
+                if not dimitem.strip() in dimlevels:
                   raise Exception(f"dimlevel must be in {', '.join(dimlevels)}")
               
         if dimlevel:
