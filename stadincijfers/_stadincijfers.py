@@ -106,7 +106,10 @@ class stadincijfers:
             count += step
         return {n["ExternalCode"] : n["Name"] for n in data} 
         
-    def selectiontableasjson(self, var, geolevel="sector", periodlevel="year", period="mrp", validate=True, dimlevel=None ):
+    def selectiontableasjson(self, var, geolevel="sector", geoitem=None, geoitem_codes=None, geocompare=None, 
+                             geocompare_item=None, geosplit=None, periodlevel="year", period="mrp", validate=True, 
+                             dimlevel=None):
+        
         if validate:
             geolevels = self.geolevels(var).keys()
             periodlevels = self.periodlevels(var, geolevel).keys()
@@ -119,17 +122,23 @@ class stadincijfers:
               for dimitem in dimlevel.split(','):
                 if not dimitem.strip() in dimlevels:
                   raise Exception(f"dimlevel must be in {', '.join(dimlevels)}")
-              
-        if dimlevel:
-          params = {"var": var, "geolevel": geolevel, "Periodlevel": periodlevel, "period": period, "dimlevel": dimlevel }
-        else:
-          params = {"var": var, "geolevel": geolevel, "Periodlevel": periodlevel, "period": period}
+        
+        params_dict = ["var": var, "geolevel": geolevel, "geoitem": geoitem, "geoitem_codes": geoitem_codes,
+                       "geocompare": geocompare, "geocompare_item": geocompare_item, "geosplit": geosplit
+                       "periodlevel": periodlevel, "period": period, "dimlevel": dimlevel]    
+        
+        #remove empty/None values from params_dict
+        params = {}
+        for k, v in params_dict.items():
+            if v:
+                params[k] = v
+          
         req =  Request( self.url + "jive/selectiontableasjson.ashx?" + urlencode(params))
         return self._req_to_json(req)
 
     
-    def selectiontableasDataframe(self, var, geolevel="sector", periodlevel="year", period="mrp", validate=True, dimlevel=None ):
-        st_js = self.selectiontableasjson(var, geolevel, periodlevel, period, validate, dimlevel)
+    def selectiontableasDataframe(self, var, **kwargs):
+        st_js = self.selectiontableasjson(var, **kwargs)
         header = [ n['name'] for n in st_js['headers'] ]
         dtype = st_js['headers'][2]['type']
         data = st_js['rows']
