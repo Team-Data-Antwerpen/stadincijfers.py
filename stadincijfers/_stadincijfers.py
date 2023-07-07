@@ -106,8 +106,8 @@ class stadincijfers:
             count += step
         return {n["ExternalCode"] : n["Name"] for n in data} 
         
-    def selectiontableasjson(self, var, geolevel="sector", geoitem=None, geoitem_codes=None, geocompare=None, 
-                             geocompare_item=None, geosplit=None, periodlevel="year", period="mrp", validate=True, 
+    def selectiontableasjson(self, var, geolevel=None, geoitem=None, geoitem_codes=None, geocompare=None, 
+                             geocompare_item=None, geosplit=None, periodlevel="year", period="mrp", validate=False, 
                              dimlevel=None):
         
         if validate:
