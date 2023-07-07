@@ -13,7 +13,7 @@ class stadincijfers:
     BASE_URLS ={"antwerpen": 'https://stadincijfers.antwerpen.be/databank/',
                 "gent": 'https://gent.buurtmonitor.be/',
                 "provincies": 'https://provincies.incijfers.be/',
-                "ima-atlas": 'https://atlas.ima-aim.be/databanken',
+                "ima-atlas": 'https://atlas.ima-aim.be/databanken/',
                 "bevolkingsonderzoek": 'https://bevolkingsonderzoek.incijfers.be/'}
 
     CONTEXT = ssl._create_unverified_context() 
