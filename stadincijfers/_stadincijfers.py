@@ -124,7 +124,7 @@ class stadincijfers:
                   raise Exception(f"dimlevel must be in {', '.join(dimlevels)}")
         
         params_dict = ["var": var, "geolevel": geolevel, "geoitem": geoitem, "geoitem_codes": geoitem_codes,
-                       "geocompare": geocompare, "geocompare_item": geocompare_item, "geosplit": geosplit
+                       "geocompare": geocompare, "geocompare_item": geocompare_item, "geosplit": geosplit,
                        "periodlevel": periodlevel, "period": period, "dimlevel": dimlevel]    
         
         #remove empty/None values from params_dict
