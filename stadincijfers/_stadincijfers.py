@@ -13,7 +13,7 @@ class stadincijfers:
     BASE_URLS ={"antwerpen": 'https://stadincijfers.antwerpen.be/databank/',
                 "gent": 'https://gent.buurtmonitor.be/',
                 "provincies": 'https://provincies.incijfers.be/',
-                "ima-atlas": 'https://atlas.ima-aim.be/databanken/',
+                "ima-atlas": 'https://atlas.ima-aim.be/',
                 "bevolkingsonderzoek": 'https://bevolkingsonderzoek.incijfers.be/'}
 
     CONTEXT = ssl._create_unverified_context() 
@@ -123,11 +123,10 @@ class stadincijfers:
                 if not dimitem.strip() in dimlevels:
                   raise Exception(f"dimlevel must be in {', '.join(dimlevels)}")
         
-        params_dict = ["var": var, "geolevel": geolevel, "geoitem": geoitem, "geoitem_codes": geoitem_codes,
+        params_dict = {"var": var, "geolevel": geolevel, "geoitem": geoitem, "geoitem_codes": geoitem_codes,
                        "geocompare": geocompare, "geocompare_item": geocompare_item, "geosplit": geosplit,
-                       "periodlevel": periodlevel, "period": period, "dimlevel": dimlevel]    
+                       "periodlevel": periodlevel, "period": period, "dimlevel": dimlevel}
         
-        #remove empty/None values from params_dict
         params = {}
         for k, v in params_dict.items():
             if v:
