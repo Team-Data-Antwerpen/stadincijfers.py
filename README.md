@@ -17,6 +17,10 @@ Many local goverments in Flanders have a website like this:
 - Antwerp: https://stadincijfers.antwerpen.be/databank
 - The provinces: https://provincies.incijfers.be
 
+Other websites that use the same platform:
+- IMA-Atlas: https://atlas.ima-aim.be/
+- Bevolkingsonderzoek: https://bevolkingsonderzoek.incijfers.be/
+
 Installation:
 --------------
 
@@ -37,7 +41,7 @@ Usage:
 1) List periodlevels in the SIC site of Antwerp. 
 ```python
     from stadincijfers import stadincijfers
-    sic = stadincijfers("antwerpen") #or gent or provincies or url
+    sic = stadincijfers("antwerpen") #or gent or provincies or ima-atlas or bevolkingsonderzoek or url
     sic.periodlevels() #=> get all periodslevels
 ```
 
