@@ -63,9 +63,9 @@ class stadincijfers:
 
     def periods(self, periodlevel="year", var=None, geolevel=None):
         if var and geolevel:
-            req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels('{geolevel}')/PeriodLevels('{periodlevel}')")
+            req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels('{geolevel}')/PeriodLevels('{periodlevel}')/Periods")
         else:
-            req = Request( self.url + f"jiveservices/odata/PeriodLevels('{periodlevel}')")
+            req = Request( self.url + f"jiveservices/odata/PeriodLevels('{periodlevel}')/Periods")
         return self._req_to_dict(req)
         
     def dim_dict(self, var):
