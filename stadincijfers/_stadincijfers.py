@@ -10,7 +10,7 @@ if sys.version_info.major >= 3:
     from urllib.request import Request, urlopen
 
 class stadincijfers:
-    BASE_URLS ={"antwerpen": 'https://stadincijfers.antwerpen.be/databank/',
+    BASE_URLS ={"antwerpen": 'https://stadincijfers.antwerpen.be',
                 "gent": 'https://gent.buurtmonitor.be/',
                 "provincies": 'https://provincies.incijfers.be/',
                 "ima-atlas": 'https://atlas.ima-aim.be/',
@@ -18,7 +18,7 @@ class stadincijfers:
 
     CONTEXT = ssl._create_unverified_context() 
 
-    def __init__(self, name_or_url):
+    def __init__(self, name_or_url, apikey = ""):
         if name_or_url in self.BASE_URLS.keys():
             self.url = self.BASE_URLS[name_or_url]
         elif name_or_url.startswith("http://") or name_or_url.startswith("https://"):
@@ -28,7 +28,20 @@ class stadincijfers:
          
         if not self.url.endswith("/"): 
             self.url = self.url + '/'
+        
+        if name_or_url in ['antwerpen', 'gent']:
+            self.odata_url = self.url + "viewerservices/odata/"
+        else:
+            self.odata_url = self.url + "jiveservices/odata/"
     
+        self.apikey = apikey
+
+    def _build_request(self, url):
+        req = Request(url)
+        if self.apikey:
+            req.add_header("apikey", self.apikey)
+        return req
+
     def _req_to_json(self, req):
         resp = urlopen(req, context=self.CONTEXT)
         return json.load(resp)
@@ -39,16 +52,16 @@ class stadincijfers:
     
     def geolevels(self, var=None):
         if var:
-            req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels")
+            req = self._build_request(self.odata_url + f"Variables('{var}')/GeoLevels")
         else:
-            req = Request( self.url + f"jiveservices/odata/GeoLevels")
+            req = self._build_request(self.odata_url + "GeoLevels")
         return self._req_to_dict(req)
     
     def geoitemlevels(self, geolevel=None, var=None):
         if var and geolevel:
-            req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels('{geolevel}')/GeoItems")
+            req = self._build_request(self.odata_url + f"Variables('{var}')/GeoLevels('{geolevel}')/GeoItems")
         elif geolevel:
-            req = Request( self.url + f"jiveservices/odata/GeoLevels('{geolevel}')/GeoItems")
+            req = self._build_request(self.odata_url + f"GeoLevels('{geolevel}')/GeoItems")
         else:
             geolevels = self.geolevels(var).keys()
             raise Exception( 'geolevel must be in ' + ", ".join( geolevels )  )               
@@ -56,30 +69,30 @@ class stadincijfers:
     
     def periodlevels(self, var=None, geolevel=None):
         if var and geolevel:
-            req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels('{geolevel}')/PeriodLevels")
+            req = self._build_request(self.odata_url + f"Variables('{var}')/GeoLevels('{geolevel}')/PeriodLevels")
         else:
-            req = Request( self.url + f"jiveservices/odata/PeriodLevels")
+            req = self._build_request(self.odata_url + "PeriodLevels")
         return self._req_to_dict(req) 
 
     def periods(self, periodlevel="year", var=None, geolevel=None):
         if var and geolevel:
-            req = Request( self.url + f"jiveservices/odata/Variables('{var}')/GeoLevels('{geolevel}')/PeriodLevels('{periodlevel}')/Periods")
+            req = self._build_request(self.odata_url + f"Variables('{var}')/GeoLevels('{geolevel}')/PeriodLevels('{periodlevel}')/Periods")
         else:
-            req = Request( self.url + f"jiveservices/odata/PeriodLevels('{periodlevel}')/Periods")
+            req = self._build_request(self.odata_url + f"PeriodLevels('{periodlevel}')/Periods")
         return self._req_to_dict(req)
         
     def dim_dict(self, var):
         dim_dict = {}
-        req = Request( self.url + f"jiveservices/odata/CubeVariables('{var}')/Dimensions")
+        req = self._build_request(self.odata_url + f"CubeVariables('{var}')/Dimensions")
         dimensions = self._req_to_dict(req).keys()
         for dim in dimensions:
             try:
-                req = Request( self.url + f"jiveservices/odata/CubeVariables('{var}')/DimLevels('{dim}')/DimMembers")
+                req = self._build_request(self.odata_url + f"CubeVariables('{var}')/DimLevels('{dim}')/DimMembers")
                 dimlevels = list(self._req_to_dict(req).keys())
                 dim_dict[dim] = dimlevels
             except:
                 try:
-                    req = Request( self.url + f"jiveservices/odata/Dimensions('{dim}')/DimLevels")
+                    req = self._build_request(self.odata_url + f"Dimensions('{dim}')/DimLevels")
                     dimlevels = list(self._req_to_dict(req).keys())
                     dim_dict[dim] = dimlevels
                 except: 
@@ -92,7 +105,7 @@ class stadincijfers:
         return [item for sublist in dim_dict.values() for item in sublist]
     
     def _odataVariables(self, skip= 0):
-        req =  Request( self.url + "jiveservices/odata/Variables?$skip={}".format(skip) )
+        req = self._build_request(self.odata_url + "Variables?$skip={}".format(skip))
         return self._req_to_json(req)
         
     def odataVariables(self, skip_rows= 0 , to_rows=1000):   
